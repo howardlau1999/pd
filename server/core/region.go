@@ -30,6 +30,7 @@ import (
 // RegionInfo records detail region info.
 // Read-Only once created.
 type RegionInfo struct {
+	term              uint64
 	meta            *metapb.Region
 	learners        []*metapb.Peer
 	voters          []*metapb.Peer
@@ -87,16 +88,17 @@ func RegionFromHeartbeat(heartbeat *pdpb.RegionHeartbeatRequest) *RegionInfo {
 	}
 
 	region := &RegionInfo{
-		meta:            heartbeat.GetRegion(),
-		leader:          heartbeat.GetLeader(),
-		downPeers:       heartbeat.GetDownPeers(),
-		pendingPeers:    heartbeat.GetPendingPeers(),
-		writtenBytes:    heartbeat.GetBytesWritten(),
-		readBytes:       heartbeat.GetBytesRead(),
-		writtenKeys:     heartbeat.GetKeysWritten(),
-		readKeys:        heartbeat.GetKeysRead(),
-		approximateSize: int64(regionSize),
-		approximateKeys: int64(heartbeat.GetApproximateKeys()),
+		term:              heartbeat.GetTerm(),
+		meta:              heartbeat.GetRegion(),
+		leader:            heartbeat.GetLeader(),
+		downPeers:         heartbeat.GetDownPeers(),
+		pendingPeers:      heartbeat.GetPendingPeers(),
+		writtenBytes:      heartbeat.GetBytesWritten(),
+		writtenKeys:       heartbeat.GetKeysWritten(),
+		readBytes:         heartbeat.GetBytesRead(),
+		readKeys:          heartbeat.GetKeysRead(),
+		approximateSize:   int64(regionSize),
+		approximateKeys:   int64(heartbeat.GetApproximateKeys()),
 	}
 
 	classifyVoterAndLearner(region)
@@ -115,16 +117,17 @@ func (r *RegionInfo) Clone(opts ...RegionCreateOption) *RegionInfo {
 	}
 
 	region := &RegionInfo{
-		meta:            proto.Clone(r.meta).(*metapb.Region),
-		leader:          proto.Clone(r.leader).(*metapb.Peer),
-		downPeers:       downPeers,
-		pendingPeers:    pendingPeers,
-		writtenBytes:    r.writtenBytes,
-		readBytes:       r.readBytes,
-		writtenKeys:     r.writtenKeys,
-		readKeys:        r.readKeys,
-		approximateSize: r.approximateSize,
-		approximateKeys: r.approximateKeys,
+		term:              r.term,
+		meta:              proto.Clone(r.meta).(*metapb.Region),
+		leader:            proto.Clone(r.leader).(*metapb.Peer),
+		downPeers:         downPeers,
+		pendingPeers:      pendingPeers,
+		writtenBytes:      r.writtenBytes,
+		writtenKeys:       r.writtenKeys,
+		readBytes:         r.readBytes,
+		readKeys:          r.readKeys,
+		approximateSize:   r.approximateSize,
+		approximateKeys:   r.approximateKeys,
 	}
 
 	for _, opt := range opts {
@@ -132,6 +135,11 @@ func (r *RegionInfo) Clone(opts ...RegionCreateOption) *RegionInfo {
 	}
 	classifyVoterAndLearner(region)
 	return region
+}
+
+// GetTerm returns the current term of the region
+func (r *RegionInfo) GetTerm() uint64 {
+	return r.term
 }
 
 // GetLearners returns the learners.
