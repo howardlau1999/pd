@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package errors
+package errs
 
 import "github.com/pingcap/errors"
 
@@ -112,4 +112,20 @@ var (
 	ErrOtherPluginFuncNotFound = ClassOther.DefineError().TextualCode("ErrOtherPluginFuncNotFound").MessageTemplate("plugin function not found").Build()
 	// ErrOtherSystemTime is system time error
 	ErrOtherSystemTime = ClassOther.DefineError().TextualCode("ErrOtherSystemTime").MessageTemplate("system time error").Build()
+)
+
+// cluster
+var (
+	// ErrPersistStore is cluster failed to persist store
+	ErrPersistStore = ClassStorage.DefineError().TextualCode("ErrPersistStore").MessageTemplate("failed to persist store, store id is %d").Build()
+	// ErrDeleteRegion is cluster failed to delete region from storage
+	ErrDeleteRegion = ClassStorage.DefineError().TextualCode("ErrDeleteRegion").MessageTemplate("failed to delete region from storage, region id is %d region meta is %s").Build()
+	// ErrSaveRegion is cluster failed to save region from storage
+	ErrSaveRegion = ClassStorage.DefineError().TextualCode("ErrSaveRegion").MessageTemplate("failed to save region from storage, region id is %d region meta is %s").Build()
+	// ErrBuryStore is cluster failed to bury a store
+	ErrBuryStore = ClassInternal.DefineError().TextualCode("ErrBuryStore").MessageTemplate("failed to bury store, store is %s").Build()
+	// ErrDeleteStore is cluster failed to delete a store
+	ErrDeleteStore = ClassInternal.DefineError().TextualCode("ErrDeleteStore").MessageTemplate("failed to delete store, store meta is %s").Build()
+	// ErrClusterVersionConflict is cluster failed to delete a store
+	ErrClusterVersionConflict = ClassInternal.DefineError().TextualCode("ErrClusterVersionConflict").MessageTemplate("cluster version changed by API at the same time").Build()
 )

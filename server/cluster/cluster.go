@@ -30,6 +30,7 @@ import (
 	"github.com/pingcap/log"
 	"github.com/pingcap/pd/v4/pkg/cache"
 	"github.com/pingcap/pd/v4/pkg/component"
+	"github.com/pingcap/pd/v4/pkg/errs"
 	"github.com/pingcap/pd/v4/pkg/etcdutil"
 	"github.com/pingcap/pd/v4/pkg/logutil"
 	"github.com/pingcap/pd/v4/pkg/typeutil"
@@ -497,8 +498,8 @@ func (c *RaftCluster) HandleStoreHeartbeat(stats *pdpb.StoreStats) error {
 			zap.Uint64("available", newStore.GetAvailable()))
 	}
 	if newStore.NeedPersist() && c.storage != nil {
-		if err := c.storage.SaveStore(store.GetMeta()); err != nil {
-			log.Error("failed to persist store", zap.Uint64("store-id", newStore.GetID()))
+		if err := c.storage.SaveStore(newStore.GetMeta()); err != nil {
+			log.Error("failed to persist store", zap.Error(errs.ErrPersistStore.FastGenByArgs(newStore.GetID())))
 		} else {
 			newStore = newStore.Clone(core.SetLastPersistTime(time.Now()))
 		}
@@ -623,9 +624,9 @@ func (c *RaftCluster) processRegionHeartbeat(region *core.RegionInfo) error {
 			for _, item := range overlaps {
 				if err := c.storage.DeleteRegion(item.GetMeta()); err != nil {
 					log.Error("failed to delete region from storage",
-						zap.Uint64("region-id", item.GetID()),
-						zap.Stringer("region-meta", core.RegionToHexMeta(item.GetMeta())),
-						zap.Error(err))
+						zap.Error(errs.ErrDeleteRegion.FastGenByArgs(item.GetID(), core.RegionToHexMeta(item.GetMeta()).String())),
+						zap.NamedError("cause", err),
+					)
 				}
 			}
 		}
@@ -675,9 +676,10 @@ func (c *RaftCluster) processRegionHeartbeat(region *core.RegionInfo) error {
 			// Not successfully saved to storage is not fatal, it only leads to longer warm-up
 			// after restart. Here we only log the error then go on updating cache.
 			log.Error("failed to save region to storage",
-				zap.Uint64("region-id", region.GetID()),
-				zap.Stringer("region-meta", core.RegionToHexMeta(region.GetMeta())),
-				zap.Error(err))
+				zap.Error(errs.ErrSaveRegion.FastGenByArgs(region.GetID(), core.RegionToHexMeta(region.GetMeta()).String())),
+				zap.NamedError("cause", err),
+			)
+
 		}
 		regionEventCounter.WithLabelValues("update_kv").Inc()
 	}
@@ -1134,8 +1136,9 @@ func (c *RaftCluster) checkStores() {
 		if regionCount == 0 {
 			if err := c.BuryStore(offlineStore.GetId(), false); err != nil {
 				log.Error("bury store failed",
-					zap.Stringer("store", offlineStore),
-					zap.Error(err))
+					zap.Error(errs.ErrBuryStore.FastGenByArgs(offlineStore.String())),
+					zap.NamedError("cause", err),
+				)
 			}
 		} else {
 			offlineStores = append(offlineStores, offlineStore)
@@ -1165,8 +1168,9 @@ func (c *RaftCluster) RemoveTombStoneRecords() error {
 			err := c.deleteStoreLocked(store)
 			if err != nil {
 				log.Error("delete store failed",
-					zap.Stringer("store", store.GetMeta()),
-					zap.Error(err))
+					zap.Error(errs.ErrDeleteStore.FastGenByArgs(store.GetMeta().String())),
+					zap.NamedError("cause", err),
+				)
 				return err
 			}
 			c.RemoveStoreLimit(store.GetID())
@@ -1313,7 +1317,9 @@ func (c *RaftCluster) OnStoreVersionChange() {
 
 	if (*clusterVersion).LessThan(*minVersion) {
 		if !c.opt.CASClusterVersion(clusterVersion, minVersion) {
-			log.Error("cluster version changed by API at the same time")
+			log.Error("cluster version changed by API at the same time",
+				zap.Error(errs.ErrClusterVersionConflict.FastGenByArgs()),
+			)
 		}
 		err := c.opt.Persist(c.storage)
 		if err != nil {
