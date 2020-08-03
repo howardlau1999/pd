@@ -60,12 +60,6 @@ var (
 	ErrStorageEtcdSave = ClassStorage.DefineError().TextualCode("ErrStorageEtcdSave").MessageTemplate("save config to storage etcd error").Build()
 	// ErrStorageEtcdDelete is etcd storage delete error
 	ErrStorageEtcdDelete = ClassStorage.DefineError().TextualCode("ErrStorageEtcdDelete").MessageTemplate("delete config from storage etcd error").Build()
-	// ErrInternalSchedulerDuplicate is scheduler duplicate
-	ErrInternalSchedulerDuplicate = ClassInternal.DefineError().TextualCode("ErrInternalSchedulerDuplicate").MessageTemplate("duplicate scheduler found").Build()
-	// ErrInternalSchedulerNotFound is scheduler not found
-	ErrInternalSchedulerNotFound = ClassInternal.DefineError().TextualCode("ErrInternalSchedulerNotFound").MessageTemplate("scheduler not found").Build()
-	// ErrInternalSchedulerConfig is scheduler config error
-	ErrInternalSchedulerConfig = ClassInternal.DefineError().TextualCode("ErrInternalSchedulerConfig").MessageTemplate("wrong scheduler config").Build()
 	// ErrInternalRuleInvalid is invalid rule
 	ErrInternalRuleInvalid = ClassInternal.DefineError().TextualCode("ErrInternalRuleInvalid").MessageTemplate("invalid rule found").Build()
 	// ErrInternalRuleDuplicate is duplicate rule
@@ -128,4 +122,24 @@ var (
 	ErrDeleteStore = ClassInternal.DefineError().TextualCode("ErrDeleteStore").MessageTemplate("failed to delete store, store meta is %s").Build()
 	// ErrClusterVersionConflict is cluster failed to delete a store
 	ErrClusterVersionConflict = ClassInternal.DefineError().TextualCode("ErrClusterVersionConflict").MessageTemplate("cluster version changed by API at the same time").Build()
+)
+
+// scheduler
+var (
+	// ErrGetSourceStore is the error that scheduler get source store failed.
+	ErrGetSourceStore = ClassInternal.DefineError().TextualCode("ErrGetSourceStore").MessageTemplate("failed to get the source store, store id is %s").Build()
+	// ErrSchedulerExisted is scheduler duplicate
+	ErrSchedulerExisted = ClassInternal.DefineError().TextualCode("ErrSchedulerExisted").MessageTemplate("scheduler existed").Build()
+	// ErrSchedulerNotFound is scheduler not found
+	ErrSchedulerNotFound = ClassInternal.DefineError().TextualCode("ErrSchedulerNotFound").MessageTemplate("scheduler not found").Build()
+	// ErrScheduleConfigNotExist is scheduler config not found
+	ErrScheduleConfigNotExist = ClassInternal.DefineError().TextualCode("ErrScheduleConfigNotExist").MessageTemplate("the config does not exist").Build()
+	// ErrSchedulerConfig is scheduler config error
+	ErrSchedulerConfig = ClassInternal.DefineError().TextualCode("ErrSchedulerConfig").MessageTemplate("wrong scheduler config %s").Build()
+	// ErrCacheOverflow is cache overflow error
+	ErrCacheOverflow = ClassInternal.DefineError().TextualCode("ErrCacheOverflow").MessageTemplate("cache overflow, scheduler is %s").Build()
+	// ErrInternalGrowth is unknown interval growth type error
+	ErrInternalGrowth = ClassInternal.DefineError().TextualCode("ErrInternalGrowth").MessageTemplate("unknown interval growth type error").Build()
+	// ErrCreateOperator is create operator error
+	ErrCreateOperator = ClassInternal.DefineError().TextualCode("ErrCreateOperator").MessageTemplate("fail to create %s operator").Build()
 )
